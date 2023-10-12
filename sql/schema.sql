@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS games (
 );
 
 CREATE TABLE IF NOT EXISTS game_user (
-    id UUID NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
+    id TEXT PRIMARY KEY, -- Game User token
+    user_id UUID NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     game_code TEXT NOT NULL REFERENCES games (code) ON UPDATE CASCADE ON DELETE CASCADE,
     balance INTEGER NOT NULL, -- The current balance of the user in cents
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

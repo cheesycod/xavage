@@ -65,6 +65,42 @@ func Authorize(r uapi.Route, req *http.Request) (uapi.AuthData, uapi.HttpRespons
 				continue
 			}
 
+			if req.Header.Get("X-GameUser-ID") != "" {
+				// Delete all game users older than 1 hour
+				_, err := state.Pool.Exec(state.Context, "DELETE FROM game_users WHERE created_at < NOW() - INTERVAL '1 hour'")
+				if err != nil {
+					return uapi.AuthData{}, uapi.HttpResponse{
+						Status: http.StatusInternalServerError,
+						Json:   types.ApiError{Message: "Failed to delete old game users: " + err.Error()},
+					}, false
+				}
+
+				var createdAt pgtype.Timestamptz
+
+				err = state.Pool.QueryRow(state.Context, "SELECT created_at FROM game_users WHERE id = $1", req.Header.Get("X-GameUser-ID")).Scan(&createdAt)
+
+				if err != nil {
+					return uapi.AuthData{}, uapi.HttpResponse{
+						Status: http.StatusForbidden,
+						Json:   types.ApiError{Message: "Failed to fetch selected game: " + err.Error()},
+					}, false
+				}
+
+				if !createdAt.Valid {
+					return uapi.AuthData{}, uapi.HttpResponse{
+						Status: http.StatusForbidden,
+						Json:   types.ApiError{Message: "This game user ID does not exist [created_at!"},
+					}, false
+				}
+			} else {
+				if auth.AllowedScope != "notingame" {
+					return uapi.AuthData{}, uapi.HttpResponse{
+						Status: http.StatusForbidden,
+						Json:   types.ApiError{Message: "You must specify a game user ID to use this endpoint!"},
+					}, false
+				}
+			}
+
 			authData = uapi.AuthData{
 				TargetType: TargetTypeUser,
 				ID:         id.String,
