@@ -2,6 +2,7 @@ package common
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -15,6 +16,8 @@ var (
 		color.New(color.FgRed, color.Bold).PrintlnFunc()(a...)
 		os.Exit(1)
 	}
+
+	Ctx = context.Background()
 )
 
 func GetRepoRoot() string {

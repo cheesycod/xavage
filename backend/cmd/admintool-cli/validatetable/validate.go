@@ -2,7 +2,6 @@ package validatetable
 
 import (
 	"admintool-cli/common"
-	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -13,7 +12,6 @@ import (
 
 var (
 	_pool *pgxpool.Pool
-	Ctx   = context.Background()
 )
 
 func ValidateTable(progname string, args []string) {
@@ -41,7 +39,7 @@ func ValidateTable(progname string, args []string) {
 	}
 
 	var err error
-	_pool, err = pgxpool.New(Ctx, "postgres:///infinity")
+	_pool, err = pgxpool.New(common.Ctx, "postgres:///infinity")
 
 	if err != nil {
 		panic(err)
@@ -49,7 +47,7 @@ func ValidateTable(progname string, args []string) {
 
 	sp := common.NewSandboxPool(_pool)
 
-	rows, err := sp.Query(Ctx, "SELECT "+tgtSplit[1]+" FROM "+tgtSplit[0]+" WHERE "+tgtSplit[1]+" IS NOT NULL")
+	rows, err := sp.Query(common.Ctx, "SELECT "+tgtSplit[1]+" FROM "+tgtSplit[0]+" WHERE "+tgtSplit[1]+" IS NOT NULL")
 
 	if err != nil {
 		panic(err)
@@ -79,7 +77,7 @@ func ValidateTable(progname string, args []string) {
 		// Ensure that the field also exists in the backer table
 		var exists bool
 
-		err = sp.QueryRow(Ctx, "SELECT EXISTS (SELECT 1 FROM "+backSplit[0]+" WHERE "+backSplit[1]+" = $1)", id).Scan(&exists)
+		err = sp.QueryRow(common.Ctx, "SELECT EXISTS (SELECT 1 FROM "+backSplit[0]+" WHERE "+backSplit[1]+" = $1)", id).Scan(&exists)
 
 		if err != nil {
 			panic(err)
@@ -98,7 +96,7 @@ func ValidateTable(progname string, args []string) {
 			}
 
 			if ask {
-				err = sp.Exec(Ctx, "DELETE FROM "+tgtSplit[0]+" WHERE "+tgtSplit[1]+" = $1", id)
+				err = sp.Exec(common.Ctx, "DELETE FROM "+tgtSplit[0]+" WHERE "+tgtSplit[1]+" = $1", id)
 
 				if err != nil {
 					panic(err)

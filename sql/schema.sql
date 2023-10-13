@@ -1,5 +1,7 @@
+create extension if not exists "uuid-ossp";
+
 CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username TEXT NOT NULL,
     password TEXT NOT NULL, -- Argon2id hashed password
     token TEXT NOT NULL, -- API token
@@ -16,7 +18,7 @@ CREATE TABLE IF NOT EXISTS games (
 );
 
 CREATE TABLE IF NOT EXISTS game_user (
-    id TEXT PRIMARY KEY, -- Game User token
+    id TEXT PRIMARY KEY DEFAULT uuid_generate_v4(), -- Game User token
     user_id UUID NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     game_code TEXT NOT NULL REFERENCES games (code) ON UPDATE CASCADE ON DELETE CASCADE,
     balance INTEGER NOT NULL, -- The current balance of the user in cents
@@ -24,7 +26,7 @@ CREATE TABLE IF NOT EXISTS game_user (
 );
 
 CREATE TABLE IF NOT EXISTS stock (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     game_code TEXT NOT NULL REFERENCES games (code) ON UPDATE CASCADE ON DELETE CASCADE,
     ticker TEXT NOT NULL, -- AAPL etc
     company_name TEXT NOT NULL,
@@ -35,14 +37,14 @@ CREATE TABLE IF NOT EXISTS stock (
 );
 
 CREATE TABLE IF NOT EXISTS news (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title TEXT NOT NULL,
     game_code TEXT NOT NULL REFERENCES games (code) ON UPDATE CASCADE ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS user_transaction (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE,
     game_code TEXT NOT NULL REFERENCES games (code) ON UPDATE CASCADE ON DELETE CASCADE,
     stock_id UUID NOT NULL REFERENCES stock (id) ON UPDATE CASCADE ON DELETE CASCADE,

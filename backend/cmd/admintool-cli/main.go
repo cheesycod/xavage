@@ -2,6 +2,7 @@ package main
 
 import (
 	"admintool-cli/tests"
+	"admintool-cli/users/adduser"
 	"admintool-cli/validatetable"
 	"fmt"
 	"os"
@@ -43,8 +44,13 @@ var cmds = map[string]command{
 		Help: "Validate a table",
 	},
 	"users": {
-		Help:        "Manage users",
-		Subcommands: map[string]command{},
+		Help: "Manage users",
+		Subcommands: map[string]command{
+			"create": {
+				Func: adduser.CreateUser,
+				Help: "Create a user",
+			},
+		},
 	},
 }
 
@@ -95,6 +101,7 @@ func main() {
 		}
 
 		cmd = subcmd
+		args = args[1:]
 	}
 
 	cmd.Func(progname, args[1:])
