@@ -12,6 +12,7 @@ import (
 
 	"xavagebb/api"
 	"xavagebb/constants"
+	"xavagebb/routes/users"
 	"xavagebb/state"
 	"xavagebb/types"
 
@@ -102,6 +103,7 @@ func main() {
 
 	routers := []uapi.APIRouter{
 		// Use same order as routes folder
+		users.Router{},
 	}
 
 	for _, router := range routers {
