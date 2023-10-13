@@ -3,7 +3,6 @@ package adduser
 import (
 	"admintool-cli/common"
 	"fmt"
-	"os"
 	"xavagebb/state"
 
 	"github.com/alexedwards/argon2id"
@@ -36,7 +35,7 @@ func CreateUser(progname string, args []string) {
 	fmt.Println("Is admin:", isAdmin)
 
 	for {
-		check := common.AskInput("Is this correct? [y/n]")
+		check := common.AskInput("Is this correct? [y/n] ")
 
 		if check == "y" || check == "Y" {
 			break
@@ -50,6 +49,7 @@ func CreateUser(progname string, args []string) {
 	fmt.Println("Creating user...")
 
 	initialPw := crypto.RandString(16)
+	token := crypto.RandString(512)
 
 	argon2hash, err := argon2id.CreateHash(initialPw, argon2id.DefaultParams)
 
@@ -59,19 +59,18 @@ func CreateUser(progname string, args []string) {
 
 	fmt.Println("Initial password:", initialPw)
 
-	_pool, err := pgxpool.New(common.Ctx, "postgres:///xavage")
+	pool, err := pgxpool.New(common.Ctx, "postgres:///xavage")
 
 	if err != nil {
 		panic(err)
 	}
 
-	sp := common.NewSandboxPool(_pool)
-	sp.AllowCommit = true
-	os.Setenv("NO_LOGS", "1")
-
-	err = sp.Exec(state.Context, "INSERT INTO users (username, password, root) VALUES ($1, $2, $3)", name, argon2hash, isAdmin)
+	var id string
+	err = pool.QueryRow(state.Context, "INSERT INTO users (username, password, root, token) VALUES ($1, $2, $3, $4) RETURNING id", name, argon2hash, isAdmin, token).Scan(&id)
 
 	if err != nil {
 		common.Fatal(err)
 	}
+
+	fmt.Println("User created successfully with ID:", id)
 }
